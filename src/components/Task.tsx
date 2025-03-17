@@ -2,6 +2,7 @@ import { forwardRef, useState } from 'react';
 import { Task as TaskType } from '../types';
 import { GripVertical, Pencil, Trash2, X, Check, Palette } from 'lucide-react';
 import { useBoardStore } from '../store/boardStore';
+import { useThemeStore } from '../store/themeStore';
 
 interface Props {
   task: TaskType;
@@ -9,12 +10,12 @@ interface Props {
 }
 
 const colorOptions = [
-  { name: 'Blanco', value: 'bg-white' },
-  { name: 'Verde claro', value: 'bg-green-50' },
-  { name: 'Azul claro', value: 'bg-blue-50' },
-  { name: 'Rojo claro', value: 'bg-red-50' },
-  { name: 'Amarillo claro', value: 'bg-yellow-50' },
-  { name: 'Morado claro', value: 'bg-purple-50' }
+  { name: 'Morado', value: 'bg-purple-600 text-white' },
+  { name: 'Turquesa', value: 'bg-teal-500 text-white' },
+  { name: 'Coral', value: 'bg-rose-500 text-white' },
+  { name: 'Índigo', value: 'bg-indigo-500 text-white' },
+  { name: 'Esmeralda', value: 'bg-emerald-500 text-white' },
+  { name: 'Ámbar', value: 'bg-amber-500 text-white' }
 ];
 
 export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...props }, ref) => {
@@ -23,6 +24,7 @@ export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...prop
   const [editDescription, setEditDescription] = useState(task.description || '');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const { updateTask, deleteTask } = useBoardStore();
+  const { isDarkMode } = useThemeStore();
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString('es', {
@@ -58,32 +60,40 @@ export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...prop
       <div
         ref={ref}
         {...props}
-        className={`${task.color || 'bg-white'} p-4 rounded shadow-md`}
+        className={`${task.color || (isDarkMode ? 'bg-gray-700' : 'bg-white')} p-4 rounded shadow-md`}
       >
         <div className="space-y-3">
           <input
             type="text"
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="w-full px-2 py-1 border rounded text-sm"
+            className={`w-full px-2 py-1 border rounded text-sm ${
+              isDarkMode 
+                ? 'bg-gray-600 border-gray-500 text-white' 
+                : 'bg-white border-gray-300'
+            }`}
             autoFocus
           />
           <textarea
             value={editDescription}
             onChange={(e) => setEditDescription(e.target.value)}
-            className="w-full px-2 py-1 border rounded text-sm"
+            className={`w-full px-2 py-1 border rounded text-sm ${
+              isDarkMode 
+                ? 'bg-gray-600 border-gray-500 text-white' 
+                : 'bg-white border-gray-300'
+            }`}
             rows={3}
           />
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setIsEditing(false)}
-              className="p-1 text-gray-500 hover:text-gray-700"
+              className="p-1 text-current opacity-60 hover:opacity-100"
             >
               <X size={16} />
             </button>
             <button
               onClick={handleSave}
-              className="p-1 text-green-500 hover:text-green-700"
+              className="p-1 text-current opacity-60 hover:opacity-100"
             >
               <Check size={16} />
             </button>
@@ -97,10 +107,10 @@ export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...prop
     <div
       ref={ref}
       {...props}
-      className={`${task.color || 'bg-white'} p-4 rounded shadow-sm hover:shadow-md transition-shadow group relative`}
+      className={`${task.color || (isDarkMode ? 'bg-gray-700 text-white' : 'bg-white')} p-4 rounded shadow-sm hover:shadow-md transition-shadow group relative`}
     >
       <div className="flex items-start gap-2">
-        <div className="mt-1 text-gray-400 cursor-grab">
+        <div className="mt-1 opacity-60 cursor-grab">
           <GripVertical size={16} />
         </div>
         <div className="flex-1">
@@ -109,13 +119,13 @@ export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...prop
             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => setShowColorPicker(!showColorPicker)}
-                className="text-gray-400 hover:text-gray-600"
+                className="opacity-60 hover:opacity-100"
               >
                 <Palette size={14} />
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-gray-400 hover:text-gray-600"
+                className="opacity-60 hover:opacity-100"
               >
                 <Pencil size={14} />
               </button>
@@ -128,9 +138,9 @@ export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...prop
             </div>
           </div>
           {task.description && (
-            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+            <p className="text-sm opacity-80 mt-1">{task.description}</p>
           )}
-          <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 mt-2 text-xs opacity-60">
             <span>{formatDate(task.createdAt)}</span>
             <span>•</span>
             <span>{task.createdBy}</span>
@@ -144,13 +154,15 @@ export const Task = forwardRef<HTMLDivElement, Props>(({ task, columnId, ...prop
         </div>
       </div>
       {showColorPicker && (
-        <div className="absolute right-0 top-full mt-2 bg-white rounded-md shadow-lg z-10 p-2">
+        <div className={`absolute right-0 top-full mt-2 ${
+          isDarkMode ? 'bg-gray-700' : 'bg-white'
+        } rounded-md shadow-lg z-10 p-2`}>
           <div className="grid grid-cols-2 gap-1">
             {colorOptions.map((color) => (
               <button
                 key={color.value}
                 onClick={() => handleColorChange(color.value)}
-                className={`${color.value} p-2 rounded hover:opacity-80 text-xs text-gray-600 w-full`}
+                className={`${color.value} p-2 rounded hover:opacity-90 text-xs w-full`}
               >
                 {color.name}
               </button>
